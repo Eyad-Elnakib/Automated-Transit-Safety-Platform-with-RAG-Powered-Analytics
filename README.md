@@ -67,21 +67,11 @@ The platform has been empirically evaluated across rigorous computer vision benc
 
 The platform operates as a continuous, closed-loop safety pipeline that captures live video, evaluates hazards in milliseconds, logs telematics, and dispatches emergency alerts without human intervention:
 
-```
-[ 📷 Webcam / Edge UI ]
-         │ (Socket.IO Live Video Streaming at 15-30 FPS)
-         ▼
-[ 🌐 Webcam Backend Gateway ] ───(HTTP POST Multipart Frame)───► [ 🧠 Python AI Service (FastAPI) ]
-         │                                                                  │
-         │ (Returns Bounding Boxes & Confidence Metrics < 50ms) ◄───────────┘
-         ▼
-[ ⚖️ Cooldown & Rate-Limiting Engine ]
-         │
-         ├───► 💾 Annotates & Saves Proof Snapshot to Storage (sharp)
-         ├───► 🗄️ Persists Violation Record in MongoDB Atlas (@dms/shared-models)
-         ├───► ⚡ Emits Real-Time Dashboard Alarms via Socket.IO Channel (/ws/stream)
-         └───► 🚨 Dispatches Webhook Payload to n8n Automated Emergency Workflows
-```
+<p align="center">
+  <img src="./screenshots/workflow-architecture.png" alt="System Architecture and Data Flow" width="90%" />
+  <br />
+  <i>Real-time multi-model YOLOv8 inference, event-driven telematics throttling, and n8n webhook orchestration.</i>
+</p>
 
 1. **Edge Video Ingestion & Frame Capping:** The React streaming dashboard captures live webcam feeds and transmits optimized, compressed video frames over bi-directional **Socket.IO** WebSockets (`/ws/stream`) to the Node.js telematics gateway at a controlled rate of 15–30 FPS.
 2. **Multi-Model YOLOv8 Inference:** The telematics gateway immediately dispatches frames via asynchronous HTTP connection pooling to the **FastAPI Python AI Engine**. Five dedicated PyTorch/YOLOv8 neural networks evaluate the frame simultaneously in memory to detect behavioral hazards (Smoking, Drowsiness, Seatbelt unfastened, Cellphone use, Hands-off steering wheel) with sub-50ms inference latency.
