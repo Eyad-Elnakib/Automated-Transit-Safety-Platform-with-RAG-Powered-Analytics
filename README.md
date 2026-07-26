@@ -167,10 +167,42 @@ The codebase is structured as a decoupled **Monorepo Workspace** managed via NPM
 
 ---
 
+## 📋 Prerequisites & Environment Setup
+
+Before launching the platform locally or via Docker, ensure your development environment satisfies the following enterprise software requirements:
+
+| Technology Component | Minimum Version | Recommended Version | Primary Usage in System |
+| :--- | :---: | :---: | :--- |
+| **Python** | `v3.11+` | `v3.13` | Runs Computer Vision AI Engine & RAG LangChain Analytics |
+| **Node.js** | `v18+` | `v20 LTS` | Powered NPM Monorepo Workspaces, Express Backends & Vite UIs |
+| **Docker & Compose** | `v20+` | `v24+` | Containerized Multi-Service Orchestration & Network Isolation |
+| **MongoDB / Atlas** | `v5.0+` | `v6.0+` | Telematics Storage, Driver Schema & Vector Similarity Search |
+
+### 🔐 1. Configure Environment Variables (`.env`)
+Complex decoupled systems rely heavily on environment variables to manage MongoDB URIs, JWT signing secrets, LLM API keys, and port configurations. We have provided a comprehensive configuration template:
+```bash
+# 1. Copy the root environment template to create your local secrets file
+cp .env.example .env
+
+# 2. Open .env and fill in your MongoDB connection string and dummy API keys
+```
+
+### 🧠 2. Model Weight Handling & Onboarding
+Because pre-trained PyTorch neural network weights (`.pt` files) exceed standard Git file size limits ($> 50\text{MB}$ each), they are excluded from repository history via `.gitignore`. To prevent startup crashes (`FileNotFoundError`), verify and onboard your models using our automated verification utility:
+```bash
+# Verify that all 5 required YOLOv8 .pt weights are present in ai-service/models/
+bash scripts/download_weights.sh
+
+# For Windows PowerShell users:
+.\scripts\download_weights.ps1
+```
+
+---
+
 ## 🚀 Getting Started
 
 ### Option 1: One-Click Docker Setup (Recommended)
-Ensure Docker is running on your machine and your YOLO `.pt` model files are placed inside `webcam-monitoring-app/ai-service/models/`.
+Ensure Docker is running on your machine and your YOLO `.pt` model files have been verified via `scripts/download_weights.sh`.
 
 ```bash
 # Start MongoDB, AI Engine, Backends, and Frontends simultaneously
@@ -213,6 +245,32 @@ cd webcam-monitoring-app/frontend && npm run dev
 cd webcam-monitoring-app/ai-service
 py -m pip install -r requirements.txt
 py -m uvicorn app.main:app --host 0.0.0.0 --port 8000
+```
+
+---
+
+## 🧪 Testing & Quality Assurance
+
+The repository is built with an automated GitHub Actions CI/CD workflow (`.github/workflows/ci.yml`) that runs on every push and pull request. To run automated verification tests locally across microservice boundaries:
+
+### 1. JavaScript / Node.js Workspace Tests
+From the root directory, execute test suites across all hoisted NPM workspaces:
+```bash
+# Run unit and integration tests across Express gateways and shared schemas
+npm test
+
+# Verify React frontend build compilation and Vite bundle integrity
+npm run build --workspaces --if-present
+```
+
+### 2. Python Computer Vision & RAG Pipeline Verification
+Verify PyTorch tensor syntax, YOLO model loading, and FastAPI endpoint schemas:
+```bash
+# Verify syntax and compile Python bytecode across all AI microservices
+python -m compileall webcam-monitoring-app/ai-service/app/ dashboard/rag-agent/
+
+# Test live inference endpoint response metrics (requires running service)
+curl -X GET http://localhost:8000/health
 ```
 
 ---
