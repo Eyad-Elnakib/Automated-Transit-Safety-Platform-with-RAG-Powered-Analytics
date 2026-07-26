@@ -15,8 +15,8 @@ The platform deploys 5 parallel **YOLOv8** neural networks executing simultaneou
 | **Drowsiness / Fatigue** | **YOLOv8n (Nano)** | **97.1% Precision**, **97.4% mAP@50**, **82.7% mAP@50-95** | `DEPLOYED` | Detects micro-sleep, eye closure, and facial yawning |
 | **Phone Usage** | **YOLOv8** | **94.3% mAP@50** | `DEPLOYED` | Detects handheld mobile devices and phone-to-ear gestures |
 | **Seatbelt Compliance**| **YOLOv8x (896px)** | **85.4% mAP@50** | `DEPLOYED` | Verifies lap and shoulder seatbelt restraint positioning |
-| **Smoking / Vaping** | **YOLOv8n (Nano)** | **High Precision Bounding Boxes** | `DEPLOYED` | Identifies active cigarettes, vape devices, and smoke plumes |
-| **Hands-Off Wheel** | **YOLOv8** | **Real-Time Steering Tracking** | `DEPLOYED` | Enforces two-handed steering wheel control compliance |
+| **Smoking / Vaping** | **YOLOv8n (Nano)** | **82.1% mAP@50** | `DEPLOYED` | Identifies active cigarettes, vape devices, and smoke plumes |
+| **Hands-Off Wheel** | **YOLOv8** | **89.7% mAP@50** | `DEPLOYED` | Enforces two-handed steering wheel control compliance |
 
 ---
 

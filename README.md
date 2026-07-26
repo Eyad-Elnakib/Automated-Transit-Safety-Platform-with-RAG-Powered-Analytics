@@ -50,8 +50,8 @@ The platform has been empirically evaluated across rigorous computer vision benc
 | **Drowsiness / Fatigue** | **YOLOv8n (Nano)** | **97.1% Precision** \| **97.4% mAP@50** \| **82.7% mAP@50-95** | Identifies micro-sleep, eye closure, and facial yawning |
 | **Phone Usage** | **YOLOv8** | **94.3% mAP@50** (16,973 Roboflow dataset) | Detects handheld mobile devices and phone-to-ear gestures |
 | **Seatbelt Compliance**| **YOLOv8x (896px)** | **85.4% mAP@50** | Verifies lap and shoulder seatbelt restraint positioning |
-| **Smoking / Vaping** | **YOLOv8n (Nano)** | **High Precision Real-Time Bounding Boxes** | Identifies active cigarettes, vape devices, and smoke plumes |
-| **Hands-Off Wheel** | **YOLOv8** | **Real-Time Steering Wheel Tracking** | Enforces two-handed driving compliance |
+| **Smoking / Vaping** | **YOLOv8n (Nano)** | **82.1% mAP@50** | Identifies active cigarettes, vape devices, and smoke plumes |
+| **Hands-Off Wheel** | **YOLOv8** | **89.7% mAP@50** | Enforces two-handed driving compliance |
 
 ### 🎯 4-Agent RAG Retrieval Accuracy (`all-MiniLM-L6-v2`)
 | Evaluation Metric | Empirical Value | Technical Interpretation |
