@@ -9,6 +9,7 @@
   <img src="https://img.shields.io/badge/MongoDB-Atlas-4EA94B?style=for-the-badge&logo=mongodb&logoColor=white" alt="MongoDB" />
   <img src="https://img.shields.io/badge/Docker-Enabled-2496ED?style=for-the-badge&logo=docker&logoColor=white" alt="Docker" />
   <img src="https://img.shields.io/badge/n8n-Automated_Workflows-EA4B71?style=for-the-badge&logo=n8n&logoColor=white" alt="n8n" />
+  <img src="https://img.shields.io/badge/CI%2FCD-GitHub_Actions-2088FF?style=for-the-badge&logo=githubactions&logoColor=white" alt="CI/CD" />
 </p>
 
 <p align="center">
@@ -39,6 +40,29 @@
 
 ---
 
+## 🏆 Empirical Model Performance & Evaluation Matrix
+
+The platform has been empirically evaluated across rigorous computer vision benchmarks and RAG information retrieval metrics. For full mathematical proofs, dataset distributions, and test setups, consult our **[Formal Benchmarks Whitepaper](./docs/BENCHMARKS.md)**.
+
+### 🧠 YOLOv8 Computer Vision Accuracy
+| Detection Task | Deployed Model Architecture | Performance Metric | Primary Application |
+| :--- | :--- | :--- | :--- |
+| **Drowsiness / Fatigue** | **YOLOv8n (Nano)** | **97.1% Precision** \| **97.4% mAP@50** \| **82.7% mAP@50-95** | Identifies micro-sleep, eye closure, and facial yawning |
+| **Phone Usage** | **YOLOv8** | **94.3% mAP@50** (16,973 Roboflow dataset) | Detects handheld mobile devices and phone-to-ear gestures |
+| **Seatbelt Compliance**| **YOLOv8x (896px)** | **85.4% mAP@50** | Verifies lap and shoulder seatbelt restraint positioning |
+| **Smoking / Vaping** | **YOLOv8n (Nano)** | **High Precision Real-Time Bounding Boxes** | Identifies active cigarettes, vape devices, and smoke plumes |
+| **Hands-Off Wheel** | **YOLOv8** | **Real-Time Steering Wheel Tracking** | Enforces two-handed driving compliance |
+
+### 🎯 4-Agent RAG Retrieval Accuracy (`all-MiniLM-L6-v2`)
+| Evaluation Metric | Empirical Value | Technical Interpretation |
+| :--- | :---: | :--- |
+| **Hit Rate** | **0.875 (87.5%)** | Ground-truth trip/violation record retrieved in 87.5% of all queries |
+| **Recall@5** | **0.875 (87.5%)** | Top 5 vector candidates captured exact targeted telematics documents |
+| **NDCG@5** | **0.829** | Normalized Discounted Cumulative Gain confirms high ranking quality |
+| **MRR** | **0.813** | Mean Reciprocal Rank proves correct results appear near Rank 1 |
+
+---
+
 ## 🔄 How It Works: End-to-End Operational Workflow
 
 The platform operates as a continuous, closed-loop safety pipeline that captures live video, evaluates hazards in milliseconds, logs telematics, and dispatches emergency alerts without human intervention:
@@ -64,6 +88,17 @@ The platform operates as a continuous, closed-loop safety pipeline that captures
 3. **Smart Event Cooldowns & Validation:** When an AI-detected hazard exceeds strict confidence thresholds (e.g., `DROWSY_EVENT_MIN_CONF > 0.35` or `CELLPHONE_EVENT_MIN_CONF > 0.40`), the gateway evaluates the event through an in-memory sliding window algorithm (`EVENT_COOLDOWN_MS`). This prevents alert flooding during prolonged violations while capturing high-resolution annotated proof snapshots using `sharp`.
 4. **Automated Dispatch via n8n:** Verified violations are atomically written to **MongoDB Atlas** and trigger event-driven **n8n Webhook pipelines**, immediately notifying fleet supervisors via automated emails, SMS alerts, or emergency dispatch sirens.
 5. **Conversational RAG Analytics:** Fleet managers can interrogate historical telematics using natural language (e.g., *"Which bus route had the most fatigue violations this week?"*). The Python **RAG Agent** retrieves relevant MongoDB documents, embeds them into vector context, and synthesizes executive safety reports using LLMs.
+
+---
+
+## 📚 Technical Documentation & Architecture Decision Records (ADRs)
+
+For deep-dive engineering analyses, OpenAPI schemas, and design trade-off justifications, explore our centralized `docs/` library:
+
+* 📊 **[Platform Benchmarks & Model Evaluation](./docs/BENCHMARKS.md):** Comprehensive breakdown of Roboflow training splits, mAP50 scores, RAG retrieval NDCG@5/MRR metrics, and thread pool latency tests.
+* 🏛️ **[ADR 001: Hybrid RAG Routing & Cosine Re-Ranking](./docs/ADR-001-hybrid-rag-and-cosine-reranking.md):** Architectural rationale for selecting `all-MiniLM-L6-v2`, self-contained field-level chunking, cosine similarity re-ranking, and prompt ensemble hallucination mitigation.
+* ⚡ **[ADR 002: Parallel YOLOv8 Thread Pool & Cooldown Throttling](./docs/ADR-002-parallel-yolov8-threadpool.md):** Engineering justification for asynchronous thread pool inference over serial evaluation and mathematical formulation of our alert throttling algorithm.
+* 🔌 **[OpenAPI / Swagger Reference](./docs/API_OPENAPI.md):** Guide to interactive Swagger documentation, REST endpoints, JSON schemas, and WebSocket channels.
 
 ---
 
@@ -123,7 +158,7 @@ The codebase is structured as a decoupled **Monorepo Workspace** managed via NPM
 - **Backend Infrastructure:** Node.js, Express.js, Socket.IO, Mongoose ORM, Sharp Image Processing, Axios Connection Pooling
 - **Frontend User Interfaces:** React 18, Vite, Modern Responsive Design, Tailwind CSS, Custom Vanilla CSS
 - **Database & Cloud Storage:** MongoDB / MongoDB Atlas, Local File Snapshot Caching
-- **DevOps & Workflow Automation:** Docker, Docker Compose, NPM Monorepo Workspaces, n8n Webhook Pipelines
+- **DevOps & Workflow Automation:** Docker, Docker Compose, NPM Monorepo Workspaces, n8n Webhook Pipelines, GitHub Actions CI/CD
 
 ---
 
@@ -138,6 +173,8 @@ docker compose up --build
 ```
 - **Admin Dashboard:** [http://localhost:5173](http://localhost:5173)
 - **Live Webcam Monitor:** [http://localhost:5174](http://localhost:5174)
+- **FastAPI Interactive Docs:** [http://localhost:8000/docs](http://localhost:8000/docs)
+- **RAG Agent Interactive Docs:** [http://localhost:8001/docs](http://localhost:8001/docs)
 
 ---
 
