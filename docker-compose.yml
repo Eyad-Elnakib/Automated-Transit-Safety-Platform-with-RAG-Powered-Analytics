@@ -1,0 +1,105 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:6-jammy
+    container_name: dms-mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - dms_mongo_data:/data/db
+    restart: unless-stopped
+    networks:
+      - dms-network
+
+  webcam-ai:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: webcam-ai
+    container_name: dms-webcam-ai
+    environment:
+      - AI_CONF_THRES=0.25
+    volumes:
+      # Mount YOLO models into the container (Make sure .pt models exist here locally)
+      - ./webcam-monitoring-app/ai-service/models:/app/ai-service/models:ro
+    restart: unless-stopped
+    networks:
+      - dms-network
+
+  webcam-backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: webcam-backend
+    container_name: dms-webcam-backend
+    environment:
+      - MONGO_URI=mongodb://mongodb:27017/driver-monitoring
+      - AI_SERVICE_URL=http://webcam-ai:8000
+      - FRONTEND_ORIGIN=http://localhost:5174
+      - BACKEND_PORT=5000
+    volumes:
+      # The backend uses APP_ROOT to save snapshots into `../..` which evaluates to `/app` inside Docker
+      - dms_webcam_snapshots:/app/storage/snapshots
+    depends_on:
+      - mongodb
+      - webcam-ai
+    restart: unless-stopped
+    networks:
+      - dms-network
+
+  webcam-frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: webcam-frontend
+      args:
+        # VITE uses this to communicate with backend at runtime
+        VITE_BACKEND_URL: http://localhost:5174
+    container_name: dms-webcam-frontend
+    ports:
+      # Exposed locally on 5174 as standard in the codebase
+      - "5174:80"
+    depends_on:
+      - webcam-backend
+    restart: unless-stopped
+    networks:
+      - dms-network
+
+  dashboard-backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: dashboard-backend
+    container_name: dms-dashboard-backend
+    environment:
+      - MONGO_URI=mongodb://mongodb:27017/driver-monitoring
+      - PORT=5000
+    depends_on:
+      - mongodb
+    restart: unless-stopped
+    networks:
+      - dms-network
+
+  dashboard-frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: dashboard-frontend
+    container_name: dms-dashboard-frontend
+    ports:
+      # Exposed locally on 5173 as standard in the codebase
+      - "5173:80"
+    depends_on:
+      - dashboard-backend
+    restart: unless-stopped
+    networks:
+      - dms-network
+
+networks:
+  dms-network:
+    driver: bridge
+
+volumes:
+  dms_mongo_data:
+  dms_webcam_snapshots:

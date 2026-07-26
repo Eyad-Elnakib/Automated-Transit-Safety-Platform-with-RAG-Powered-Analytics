@@ -1,0 +1,235 @@
+{
+  "name": "Driver Monitoring — Smart Violation Alerts",
+  "nodes": [
+
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "driver-violation-alert",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "node-webhook",
+      "name": "Violation Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 300],
+      "webhookId": "driver-violation-alert"
+    },
+
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\"received\": true}",
+        "options": {}
+      },
+      "id": "node-respond",
+      "name": "Respond 200 OK",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [460, 160]
+    },
+
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "cond-drowsy",
+              "leftValue": "={{ $json.body.type }}",
+              "rightValue": "drowsy",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            },
+            {
+              "id": "cond-confidence",
+              "leftValue": "={{ $json.body.confidence }}",
+              "rightValue": 0.8,
+              "operator": {
+                "type": "number",
+                "operation": "gte"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "id": "node-if",
+      "name": "IF: Drowsy OR Confidence ≥ 0.8",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [460, 360]
+    },
+
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "assign-subject",
+              "name": "alertSubject",
+              "value": "=🚨 [{{ $json.body.severityLevel.toUpperCase() }}] {{ $json.body.type }} detected — {{ $json.body.driverName }}",
+              "type": "string"
+            },
+            {
+              "id": "assign-message",
+              "name": "alertMessage",
+              "value": "=Driver {{ $json.body.driverName }} detected: {{ $json.body.type }} ({{ Math.round($json.body.confidence * 100) }}% confidence) on route {{ $json.body.route }} — {{ $json.body.bus }}. Trip: {{ $json.body.tripId }}. Time: {{ $json.body.timestamp }}",
+              "type": "string"
+            },
+            {
+              "id": "assign-type",
+              "name": "violationType",
+              "value": "={{ $json.body.type }}",
+              "type": "string"
+            },
+            {
+              "id": "assign-driver",
+              "name": "driverName",
+              "value": "={{ $json.body.driverName }}",
+              "type": "string"
+            },
+            {
+              "id": "assign-confidence",
+              "name": "confidence",
+              "value": "={{ $json.body.confidence }}",
+              "type": "number"
+            },
+            {
+              "id": "assign-severity",
+              "name": "severityLevel",
+              "value": "={{ $json.body.severityLevel }}",
+              "type": "string"
+            },
+            {
+              "id": "assign-route",
+              "name": "route",
+              "value": "={{ $json.body.route }}",
+              "type": "string"
+            },
+            {
+              "id": "assign-bus",
+              "name": "bus",
+              "value": "={{ $json.body.bus }}",
+              "type": "string"
+            },
+            {
+              "id": "assign-trip",
+              "name": "tripId",
+              "value": "={{ $json.body.tripId }}",
+              "type": "string"
+            },
+            {
+              "id": "assign-time",
+              "name": "timestamp",
+              "value": "={{ $json.body.timestamp }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "node-set-message",
+      "name": "Format Alert Message",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [700, 280]
+    },
+
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "log-ready",
+              "name": "status",
+              "value": "ALERT READY — Add Email / Telegram / Slack node here to send notifications",
+              "type": "string"
+            },
+            {
+              "id": "log-hint",
+              "name": "hint",
+              "value": "Connect a Send Email, Telegram, or Slack node to this node's output",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "node-ready-log",
+      "name": "✅ Alert Ready (Add notifications here)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [960, 280]
+    },
+
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "log-skipped",
+              "name": "skippedReason",
+              "value": "=Violation type={{ $('Violation Webhook').item.json.body.type }} confidence={{ $('Violation Webhook').item.json.body.confidence }} did not meet alert threshold. No notification sent.",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "node-skip-log",
+      "name": "Log Skipped (below threshold)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [700, 480]
+    }
+
+  ],
+
+  "connections": {
+    "Violation Webhook": {
+      "main": [
+        [
+          { "node": "Respond 200 OK",                 "type": "main", "index": 0 },
+          { "node": "IF: Drowsy OR Confidence ≥ 0.8", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "IF: Drowsy OR Confidence ≥ 0.8": {
+      "main": [
+        [
+          { "node": "Format Alert Message", "type": "main", "index": 0 }
+        ],
+        [
+          { "node": "Log Skipped (below threshold)", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Format Alert Message": {
+      "main": [
+        [
+          { "node": "✅ Alert Ready (Add notifications here)", "type": "main", "index": 0 }
+        ]
+      ]
+    }
+  },
+
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true
+  },
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "id": "driver-monitoring-alerts-v1",
+  "tags": ["driver-monitoring", "alerts", "safety"]
+}

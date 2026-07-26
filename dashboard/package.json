@@ -1,0 +1,13 @@
+{
+  "name": "dashboard-root",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "concurrently -n \"rag,api,ui\" -c \"magenta,cyan,green\" \"npm run dev:rag\" \"npm run dev:api\" \"npm run dev:ui\"",
+    "dev:rag": "cd backend/rag-agent && python server.py",
+    "dev:api": "cd backend && npm run dev",
+    "dev:ui":  "cd frontend && npm run dev"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}

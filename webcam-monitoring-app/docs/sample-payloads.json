@@ -1,0 +1,101 @@
+{
+  "_description": "Sample n8n webhook payloads sent by the Driver Monitoring System for each violation type.",
+  "_notes": [
+    "All payloads share the same JSON shape.",
+    "driverName, route, bus are resolved from MongoDB before dispatch.",
+    "severityLevel is derived: critical(>=0.90) | high(>=0.75) | medium(>=0.55) | low(<0.55).",
+    "imagePath is the relative path to the saved snapshot PNG (served by the webcam backend at /storage/...)."
+  ],
+
+  "payloads": {
+
+    "drowsy": {
+      "type": "drowsy",
+      "confidence": 0.9100,
+      "timestamp": "2026-04-08T19:25:00.000Z",
+      "imagePath": "storage/snapshots/drowsy/drowsy_20260408_192500_a1b2c3d4.png",
+      "driverName": "Ahmed Ali",
+      "route": "Abu Qir Line",
+      "bus": "BUS-001 (50 seats)",
+      "tripId": "642c6b9f7c0b8a0012345678",
+      "severityLevel": "critical",
+      "alertSource": "driver-monitoring-system"
+    },
+
+    "cellphone": {
+      "type": "cellphone",
+      "confidence": 0.8750,
+      "timestamp": "2026-04-08T19:31:15.000Z",
+      "imagePath": "storage/snapshots/cellphone/cellphone_20260408_193115_e5f6a7b8.png",
+      "driverName": "Mohamed Hassan",
+      "route": "Corniche Express",
+      "bus": "BUS-003 (27 seats)",
+      "tripId": "642c6b9f7c0b8a0012345679",
+      "severityLevel": "high",
+      "alertSource": "driver-monitoring-system"
+    },
+
+    "cigarettes": {
+      "type": "cigarettes",
+      "confidence": 0.7840,
+      "timestamp": "2026-04-08T20:05:42.000Z",
+      "imagePath": "storage/snapshots/cigarettes/cigarettes_20260408_200542_c9d0e1f2.png",
+      "driverName": "Ali Mahmoud",
+      "route": "Airport Shuttle",
+      "bus": "BUS-007 (50 seats)",
+      "tripId": "642c6b9f7c0b8a001234567a",
+      "severityLevel": "high",
+      "alertSource": "driver-monitoring-system"
+    },
+
+    "vape": {
+      "type": "vape",
+      "confidence": 0.6620,
+      "timestamp": "2026-04-08T21:14:08.000Z",
+      "imagePath": "storage/snapshots/vape/vape_20260408_211408_g3h4i5j6.png",
+      "driverName": "Sara Ahmed",
+      "route": "City Center Loop",
+      "bus": "BUS-002 (27 seats)",
+      "tripId": "642c6b9f7c0b8a001234567b",
+      "severityLevel": "medium",
+      "alertSource": "driver-monitoring-system"
+    },
+
+    "no_belt": {
+      "type": "no_belt",
+      "confidence": 0.9350,
+      "timestamp": "2026-04-08T22:00:01.000Z",
+      "imagePath": "storage/snapshots/no_belt/no_belt_20260408_220001_k7l8m9n0.png",
+      "driverName": "Omar Khaled",
+      "route": "Harbor Route",
+      "bus": "BUS-005 (50 seats)",
+      "tripId": "642c6b9f7c0b8a001234567c",
+      "severityLevel": "critical",
+      "alertSource": "driver-monitoring-system"
+    }
+
+  },
+
+  "n8nIfConditions": {
+    "_description": "Recommended IF conditions for the n8n flow.",
+    "alertOnAll": "No additional condition — every violation above ALERT_MIN_CONFIDENCE is forwarded.",
+    "alertOnCriticalOrDrowsy": {
+      "operator": "OR",
+      "conditions": [
+        { "field": "body.type",          "operator": "equals",            "value": "drowsy"    },
+        { "field": "body.severityLevel", "operator": "equals",            "value": "critical"  },
+        { "field": "body.confidence",    "operator": "greaterThan",       "value": 0.8         }
+      ]
+    },
+    "alertOnHighAndAbove": {
+      "field": "body.severityLevel",
+      "operator": "is in",
+      "value": ["high", "critical"]
+    }
+  },
+
+  "manualTestCurl": {
+    "_description": "Use this curl command to manually trigger an alert for testing.",
+    "command": "curl -X POST http://localhost:4000/api/alerts/violation -H 'Content-Type: application/json' -d '{\"type\":\"drowsy\",\"confidence\":0.91,\"driverId\":\"<MONGO_DRIVER_ID>\",\"routeId\":\"<MONGO_ROUTE_ID>\",\"busId\":\"<MONGO_BUS_ID>\",\"tripId\":\"<MONGO_TRIP_ID>\"}'"
+  }
+}

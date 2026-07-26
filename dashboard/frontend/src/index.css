@@ -1,0 +1,167 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Design tokens ──────────────────────────────────────────────────────── */
+@layer base {
+  :root {
+    --background: 220 20% 98%;
+    --foreground: 222 47% 11%;
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+    --primary: 221 83% 53%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 210 20% 96%;
+    --secondary-foreground: 222 47% 11%;
+    --muted: 210 20% 94%;
+    --muted-foreground: 215 16% 47%;
+    --accent: 160 60% 45%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 214 14% 85%;
+    --input: 214 14% 85%;
+    --ring: 221 83% 53%;
+    --radius: 12px;
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 100%;
+    --success: 160 60% 45%;
+    --success-foreground: 0 0% 100%;
+    --sidebar-background: 222 47% 8%;
+    --sidebar-foreground: 214 20% 75%;
+    --sidebar-primary: 221 83% 60%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 215 18% 15%;
+    --sidebar-accent-foreground: 0 0% 98%;
+    --sidebar-border: 215 18% 18%;
+    --sidebar-ring: 221 83% 60%;
+  }
+
+  .dark {
+    --background: 222 47% 6%;
+    --foreground: 214 20% 88%;
+    --card: 222 47% 9%;
+    --card-foreground: 214 20% 88%;
+    --popover: 222 47% 9%;
+    --popover-foreground: 214 20% 88%;
+    --primary: 221 83% 60%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 215 18% 14%;
+    --secondary-foreground: 214 20% 80%;
+    --muted: 215 18% 13%;
+    --muted-foreground: 215 16% 58%;
+    --accent: 160 60% 45%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 215 18% 18%;
+    --input: 215 18% 16%;
+    --ring: 221 83% 60%;
+  }
+}
+
+/* ── Base resets ───────────────────────────────────────────────────────── */
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  /* Smooth dark-mode colour transitions on all elements */
+  *, *::before, *::after {
+    transition-property: background-color, border-color, color, fill, stroke, box-shadow;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 150ms;
+  }
+
+  /* But don't slow down transforms / opacity used for animations */
+  .transition-none, [class*="animate-"] {
+    transition: none !important;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: 'DM Sans', system-ui, sans-serif;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb {
+    background: hsl(var(--border));
+    border-radius: 9999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted-foreground) / 0.4);
+  }
+}
+
+/* ── Keyframe animations ─────────────────────────────────────────────── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-8px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to   { opacity: 1; transform: scale(1); }
+}
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* ── Utility classes ─────────────────────────────────────────────────── */
+@layer utilities {
+  .animate-fade-up     { animation: fadeUp 0.35s cubic-bezier(0.4,0,0.2,1) both; }
+  .animate-fade-in     { animation: fadeIn 0.25s ease both; }
+  .animate-slide-down  { animation: slideDown 0.25s cubic-bezier(0.4,0,0.2,1) both; }
+  .animate-scale-in    { animation: scaleIn 0.2s cubic-bezier(0.4,0,0.2,1) both; }
+
+  /* Staggered children */
+  .stagger-children > *:nth-child(1) { animation-delay: 0ms; }
+  .stagger-children > *:nth-child(2) { animation-delay: 60ms; }
+  .stagger-children > *:nth-child(3) { animation-delay: 120ms; }
+  .stagger-children > *:nth-child(4) { animation-delay: 180ms; }
+
+  .glass {
+    @apply backdrop-blur-xl bg-white/70 dark:bg-card/70;
+  }
+
+  .card-premium {
+    @apply bg-card border border-border/50 shadow-sm rounded-2xl;
+  }
+
+  /* Gradient icon backgrounds */
+  .stat-gradient-blue    { background: linear-gradient(135deg, hsl(221 83% 53%)   0%, hsl(221 83% 40%)  100%); }
+  .stat-gradient-emerald { background: linear-gradient(135deg, hsl(160 60% 45%)   0%, hsl(160 60% 33%)  100%); }
+  .stat-gradient-amber   { background: linear-gradient(135deg, hsl(38  92% 50%)   0%, hsl(38  92% 38%)  100%); }
+  .stat-gradient-rose    { background: linear-gradient(135deg, hsl(0   84% 60%)   0%, hsl(0   84% 47%)  100%); }
+  .stat-gradient-violet  { background: linear-gradient(135deg, hsl(262 80% 55%)   0%, hsl(262 80% 42%)  100%); }
+
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-primary to-blue-400;
+  }
+
+  /* Button press effect */
+  .btn-press:active { transform: scale(0.97); }
+
+  /* Table row hover with gradient fill */
+  .row-hover:hover {
+    background: linear-gradient(
+      90deg,
+      hsl(var(--primary) / 0.04) 0%,
+      transparent 100%
+    );
+  }
+}

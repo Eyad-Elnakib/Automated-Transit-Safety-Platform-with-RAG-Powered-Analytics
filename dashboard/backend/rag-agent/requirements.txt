@@ -1,0 +1,13 @@
+pymongo
+motor
+sentence-transformers
+groq
+python-dotenv
+numpy
+faker
+rich
+torch
+transformers
+tqdm
+fastapi
+uvicorn[standard]

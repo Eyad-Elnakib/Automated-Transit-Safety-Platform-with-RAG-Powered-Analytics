@@ -1,0 +1,13 @@
+{
+  "name": "automated-transit-safety-platform-with-rag-powered-analytics",
+  "title": "Automated Transit Safety Platform with RAG-Powered Analytics",
+  "description": "Automated Transit Safety Platform with RAG-Powered Analytics",
+  "private": true,
+  "workspaces": [
+    "dashboard/backend",
+    "dashboard/frontend",
+    "webcam-monitoring-app/backend",
+    "webcam-monitoring-app/frontend",
+    "shared/models"
+  ]
+}
