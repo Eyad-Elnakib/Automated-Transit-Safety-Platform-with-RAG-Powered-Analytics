@@ -94,9 +94,11 @@ For deep-dive engineering analyses, OpenAPI schemas, and design trade-off justif
 
 ## 🧩 Microservice Components Deep-Dive & Technical Architecture
 
-The codebase is structured as a decoupled **Monorepo Workspace** managed via NPM Workspaces (`package.json` workspaces), ensuring separation of concerns, shared dependency hoisting, and modular scalability across 5 specialized engineering layers:
+The codebase is structured as a decoupled **Monorepo Workspace** managed via NPM Workspaces (`package.json` workspaces), ensuring separation of concerns, shared dependency hoisting, and modular scalability across 5 specialized engineering layers. Click below to expand technical specifications per service:
 
-### 1. 📁 `shared/models` (`@dms/shared-models`) — Centralized Data & Schema Layer
+<details>
+<summary><b>📁 1. Centralized Data & Schema Layer (`@dms/shared-models`) — Click to expand</b></summary>
+
 * **Architecture Pattern:** NPM Monorepo Hoisted Package (`package.json` with `"name": "@dms/shared-models"`).
 * **Core Schemas & Validation:**
   * **`Driver.js`:** Enforces driver identities (`driverId`, `name`, `licenseNumber`, `assignedBus`, real-time `status` enum: `ACTIVE` | `OFF_DUTY` | `SUSPENDED`, and cumulative safety scores).
@@ -104,8 +106,11 @@ The codebase is structured as a decoupled **Monorepo Workspace** managed via NPM
   * **`Violation.js`:** Immutable hazard audit logs storing violation type (`SMOKING`, `DROWSY`, `CELLPHONE`, `NO_SEATBELT`, `HANDS_OFF`), AI confidence scores (`0.00 - 1.00`), exact bounding box coordinates `[x1, y1, x2, y2]`, and filesystem snapshot paths (`/snapshots/...`).
   * **`Bus.js` & `Route.js`:** Manages transit asset relations, license plates, passenger capacity, and scheduled stop coordinates.
 * **Technical Advantage:** By exporting singleton Mongoose instances (`mongoose.model(...)`) and hoisting Mongoose as a root peer dependency, both Express backends share identical database validation rules and index constraints without schema drift or `"Cannot overwrite model once compiled"` runtime crashes.
+</details>
 
-### 2. 📁 `webcam-monitoring-app/ai-service` — Real-Time Computer Vision Inference Engine
+<details>
+<summary><b>🧠 2. Computer Vision AI Engine (`webcam-monitoring-app/ai-service`) — Click to expand</b></summary>
+
 * **Runtime & Stack:** Python 3.13, FastAPI, Uvicorn, PyTorch, Ultralytics YOLOv8, OpenCV (`cv2`), Starlette, NumPy.
 * **Model Loader & Lifecycle (`app/inference/model_loader.py`):** On startup, an asynchronous lifecycle handler preloads 5 specialized `.pt` neural network weights into system memory for instant parallel execution:
   * `bestsmokeyolov8n.pt` — Optimized YOLOv8 Nano architecture for cigarette, vape, and smoke plume detection.
@@ -116,28 +121,38 @@ The codebase is structured as a decoupled **Monorepo Workspace** managed via NPM
 * **API Endpoints & Processing (`app/main.py` & `app/inference/predictor.py`):**
   * `POST /predict`: Accepts raw multipart video frames or Base64 image payloads. Executes OpenCV frame decoding (`cv2.imdecode`), runs parallel PyTorch tensor inference across active YOLO models, applies Non-Maximum Suppression (NMS) to eliminate duplicate bounding boxes, and returns a structured JSON payload containing coordinates, class labels, and confidence metrics in $< 50\text{ms}$.
   * `GET /health`: Real-time Kubernetes/Docker readiness probe reporting loaded model status, RAM utilization, and active inference hardware (CPU/CUDA GPU).
+</details>
 
-### 3. 📁 `webcam-monitoring-app/backend` & `frontend` — Live Telematics Gateway & Edge Streaming
+<details>
+<summary><b>🌐 3. Telematics Gateway & Live Edge Streaming (`webcam-monitoring-app`) — Click to expand</b></summary>
+
 * **Telematics Gateway (`backend/src/`):** Node.js + Express.js REST and WebSocket API running on Port `3001` (Docker Port `5000`).
   * **Bi-Directional WebSocket Streaming (`src/index.js` & `lib/socket.js`):** Establishes persistent Socket.IO WebSocket channels (`/ws/stream`). Receives live webcam frame bursts from edge devices and delegates inference requests to the Python AI Engine over HTTP connection pooling (`axios`).
   * **Smart Cooldown & Alert Throttling (`src/services/cooldownManager.js` & `alertService.js`):** Enforces an in-memory sliding window rate-limiting algorithm (`EVENT_COOLDOWN_MS`). Prevents alert flooding when a driver commits a prolonged hazard (e.g., holding a cellphone for 15 seconds registers 1 verified violation instead of 450 duplicate database entries).
   * **Snapshot Processing (`src/services/eventLogger.js`):** Uses the high-performance `sharp` image library to resize, compress, and save visual hazard evidence snapshots to local storage (`storage/snapshots/`) while persisting immutable records to MongoDB Atlas.
   * **Automated Webhooks Pipeline (`src/routes/alerts.js` & `docs/n8n-workflow.json`):** Atomically dispatches JSON event payloads containing violation metadata and snapshot proof links to external **n8n orchestration endpoints**, triggering automated dispatch emails, SMS sirens, and supervisor alarms.
 * **Streaming Edge UI (`frontend/src/`):** React 18 + Vite dashboard running on Port `5174`. Features a low-latency HTML5 video canvas overlay (`WebcamMonitorPage.jsx`) that renders real-time AI bounding boxes, dynamic safety status cards (`StatusPanel.jsx`), and live audio alarm triggers upon hazard detection.
+</details>
 
-### 4. 📁 `dashboard/backend` & `frontend` — Enterprise Fleet Management Portal
+<details>
+<summary><b>🚌 4. Enterprise Fleet Management Portal (`dashboard`) — Click to expand</b></summary>
+
 * **Core API Server (`dashboard/backend/`):** Node.js + Express REST API running on Port `3000`.
   * **REST Endpoints (`routes/`):** Provides enterprise CRUD interfaces for `/api/drivers`, `/api/buses`, `/api/routes`, `/api/trips`, and `/api/violations`.
   * **Analytics & Aggregation Engine:** Executes complex MongoDB aggregation pipelines (`$lookup`, `$group`, `$match`, `$sort`) to calculate fleet-wide safety scores, driver fatigue indexes, route hazard distributions, and historical violation heatmaps.
 * **Admin Analytics UI (`dashboard/frontend/`):** React 18 + Vite + Tailwind CSS dashboard running on Port `5173`.
   - **Executive Modules:** Includes `OverviewPage.jsx` (live KPI cards and telemetry charts), `DriversPage.jsx` & `DriverDetailsPage.jsx` (individual driver violation timelines, license details, and score badges), `BusesPage.jsx` & `RoutesPage.jsx` (fleet assignment and transit mapping), and `ViolationSlider.jsx` (visual inspection of historical hazard snapshots).
+</details>
 
-### 5. 📁 `dashboard/rag-agent` — Conversational AI Analytics & RAG Reporting Engine
+<details>
+<summary><b>🤖 5. Conversational RAG Analytics Engine (`rag-agent`) — Click to expand</b></summary>
+
 * **Vector & LLM Stack (`rag-agent/`):** Built with Python 3.13, FastAPI (`server.py`), LangChain, and vector embeddings running on Port `8001`.
 * **RAG Pipeline Architecture (`rag_pipeline.py` & `embedding_generator.py`):**
   * **Data Ingestion & Vectorization:** Continuously queries MongoDB for new driver trip logs, violation summaries, and safety scores, transforming structured telematics into dense semantic vector embeddings (`embedding_generator.py`).
   * **Natural Language Query Translation (`agents.py` & `generation.py`):** Enables fleet supervisors to ask natural language questions (e.g., *"Which transit bus route experienced the highest rate of driver fatigue during morning rush hour this month, and which drivers were involved?"*).
   * **Contextual Synthesis:** Retrieves relevant violation documents via vector similarity search and passes the enriched context to the LLM to generate actionable, executive-ready safety recommendations and automated compliance reports.
+</details>
 
 ---
 
